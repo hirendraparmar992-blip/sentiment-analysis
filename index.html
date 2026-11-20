@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>E-Consultation | AI Sentiment Analysis Dashboard</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main id="authScreen" class="auth-screen">
+    <section class="auth-panel" aria-labelledby="authTitle">
+      <div class="auth-brand">
+        <div class="logo-badge"><i class="fa-solid fa-landmark"></i></div>
+        <span>Community Voice</span>
+      </div>
+      <p class="auth-eyebrow">PUBLIC CONSULTATION PORTAL</p>
+      <h1 class="auth-title" id="authTitle">Welcome back</h1>
+      <p class="auth-copy" id="authCopy">Sign in to share feedback on local policy proposals.</p>
+      <form id="authForm" class="auth-form">
+        <div class="form-group" id="authNameGroup" hidden>
+          <label for="authName" class="form-label">Full name</label>
+          <input id="authName" name="name" class="form-control" autocomplete="name" maxlength="80" />
+        </div>
+        <div class="form-group">
+          <label for="authEmail" class="form-label">Email address</label>
+          <input id="authEmail" name="email" class="form-control" type="email" autocomplete="email" maxlength="254" required />
+        </div>
+        <div class="form-group">
+          <label for="authPassword" class="form-label">Password</label>
+          <input id="authPassword" name="password" class="form-control" type="password" autocomplete="current-password" minlength="8" maxlength="128" required />
+        </div>
+        <p id="authError" class="auth-error" role="alert" hidden></p>
+        <button id="authSubmitBtn" class="btn btn-primary btn-lg btn-block" type="submit">Sign in</button>
+      </form>
+      <button id="authModeToggle" class="auth-mode-toggle" type="button">New here? Create an account</button>
+    </section>
+  </main>
+
+  <div id="appLayout" class="app-layout" hidden>
+    <!-- Left Dark Blue Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-badge">
+          <i class="fa-solid fa-brain"></i>
+        </div>
+        <div class="logo-text">
+          <h2>E-Consultation</h2>
+          <span class="logo-sub">AI Analysis Platform</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul>
+          <li class="nav-item">
+            <a href="#dashboard" class="nav-link active" data-section="dashboard">
+              <i class="fa-solid fa-chart-pie nav-icon"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#policies" class="nav-link" data-section="policies">
+              <i class="fa-solid fa-landmark nav-icon"></i>
+              <span>Government Policies</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#analyze" class="nav-link" data-section="analyze">
+              <i class="fa-solid fa-wand-magic-sparkles nav-icon"></i>
+              <span>Analyze Comment</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#comments" class="nav-link" data-section="comments">
+              <i class="fa-solid fa-comments nav-icon"></i>
+              <span>All Comments</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#topics" class="nav-link" data-section="topics">
+              <i class="fa-solid fa-layer-group nav-icon"></i>
+              <span>Topic Analysis</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#emotions" class="nav-link" data-section="emotions">
+              <i class="fa-solid fa-face-smile nav-icon"></i>
+              <span>Emotion Analysis</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#priority" class="nav-link" data-section="priority">
+              <i class="fa-solid fa-triangle-exclamation nav-icon"></i>
+              <span>Priority Analysis</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#reports" class="nav-link" data-section="reports">
+              <i class="fa-solid fa-file-lines nav-icon"></i>
+              <span>Reports</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status">
+          <span class="status-indicator live" id="liveIndicatorDot"></span>
+          <span id="socketStatusText">Real-time Connected</span>
+        </div>
+        <p class="sidebar-tagline">Sentiment Analysis of E-Consultation Comments</p>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-wrapper">
+      <!-- Top Application Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-toggle-btn" id="mobileMenuBtn">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="breadcrumbs">
+            <span class="breadcrumb-item">E-Consultation</span>
+            <span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-item current" id="breadcrumbCurrent">Dashboard</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="notification-bell" id="bellIcon" title="Live alerts">
+            <i class="fa-regular fa-bell"></i>
+            <span class="bell-badge" id="bellCount">0</span>
+          </div>
+          <div class="user-profile">
+            <div class="user-avatar" id="userAvatar">CV</div>
+            <div class="user-details">
+              <span class="user-name" id="authenticatedUserName">Citizen</span>
+              <span class="user-role" id="authenticatedUserEmail"></span>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-outline sign-out-btn" id="signOutBtn" type="button" title="Sign out">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i><span>Sign out</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Scrollable Container for Dynamic Sections -->
+      <div class="content-body">
+
+        <!-- ============================================== -->
+        <!-- SECTION 1: DASHBOARD                           -->
+        <!-- ============================================== -->
+        <section id="section-dashboard" class="page-section active">
+          <!-- Overview Title & CTA Banner -->
+          <div class="section-title-bar">
+            <div>
+              <h1 class="page-title">Feedback Overview</h1>
+              <p class="page-subtitle">Real-time citizen sentiment insights and topic classification from public consultation.</p>
+            </div>
+            <button class="btn btn-primary" onclick="navigateTo('analyze')">
+              <i class="fa-solid fa-plus"></i>
+              <span>+ Analyze Comment</span>
+            </button>
+          </div>
+
+          <!-- 4 Stat Cards Row -->
+          <div class="stats-grid">
+            <!-- Total Comments -->
+            <div class="stat-card card-total">
+              <div class="stat-icon-wrapper bg-blue-soft">
+                <i class="fa-solid fa-comments text-blue"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Total Comments</span>
+                <h3 class="stat-value" id="statTotal">--</h3>
+                <span class="stat-badge badge-neutral">All public submissions</span>
+              </div>
+            </div>
+
+            <!-- Positive -->
+            <div class="stat-card card-positive">
+              <div class="stat-icon-wrapper bg-green-soft">
+                <i class="fa-solid fa-arrow-trend-up text-green"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Positive Feedback</span>
+                <h3 class="stat-value text-green" id="statPositive">--</h3>
+                <span class="stat-badge badge-green" id="statPositivePct">0% of total</span>
+              </div>
+            </div>
+
+            <!-- Negative -->
+            <div class="stat-card card-negative">
+              <div class="stat-icon-wrapper bg-red-soft">
+                <i class="fa-solid fa-arrow-trend-down text-red"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Negative Feedback</span>
+                <h3 class="stat-value text-red" id="statNegative">--</h3>
+                <span class="stat-badge badge-red" id="statNegativePct">0% of total</span>
+              </div>
+            </div>
+
+            <!-- Neutral -->
+            <div class="stat-card card-neutral">
+              <div class="stat-icon-wrapper bg-amber-soft">
+                <i class="fa-solid fa-minus text-amber"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Neutral / Queries</span>
+                <h3 class="stat-value text-amber" id="statNeutral">--</h3>
+                <span class="stat-badge badge-amber" id="statNeutralPct">0% of total</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Two Column Charts / Breakdown -->
+          <div class="charts-grid">
+            <!-- Sentiment Distribution Card -->
+            <div class="card distribution-card">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">Sentiment Distribution</h3>
+                  <p class="card-subtitle">Aggregated ratio of citizen tone</p>
+                </div>
+                <span class="tag-pill">Real-time</span>
+              </div>
+              <div class="card-body">
+                <div class="sentiment-meter">
+                  <div class="meter-bar">
+                    <div class="meter-fill fill-pos" id="barFillPos" style="width: 0%"></div>
+                    <div class="meter-fill fill-neu" id="barFillNeu" style="width: 0%"></div>
+                    <div class="meter-fill fill-neg" id="barFillNeg" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div class="progress-list">
+                  <div class="progress-row">
+                    <div class="progress-meta">
+                      <span class="progress-label">
+                        <span class="dot-indicator dot-pos"></span> Positive
+                      </span>
+                      <span class="progress-counts" id="textPosCount">0 (0%)</span>
+                    </div>
+                    <div class="progress-track">
+                      <div class="progress-bar-inner bg-green" id="progPos" style="width: 0%"></div>
+                    </div>
+                  </div>
+
+                  <div class="progress-row">
+                    <div class="progress-meta">
+                      <span class="progress-label">
+                        <span class="dot-indicator dot-neg"></span> Negative
+                      </span>
+                      <span class="progress-counts" id="textNegCount">0 (0%)</span>
+                    </div>
+                    <div class="progress-track">
+                      <div class="progress-bar-inner bg-red" id="progNeg" style="width: 0%"></div>
+                    </div>
+                  </div>
+
+                  <div class="progress-row">
+                    <div class="progress-meta">
+                      <span class="progress-label">
+                        <span class="dot-indicator dot-neu"></span> Neutral
+                      </span>
+                      <span class="progress-counts" id="textNeuCount">0 (0%)</span>
+                    </div>
+                    <div class="progress-track">
+                      <div class="progress-bar-inner bg-amber" id="progNeu" style="width: 0%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Topic Distribution Card -->
+            <div class="card distribution-card">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">Topic Distribution</h3>
+                  <p class="card-subtitle">Consultation volume by government sector</p>
+                </div>
+                <button class="btn btn-sm btn-ghost" onclick="navigateTo('topics')">View All</button>
+              </div>
+              <div class="card-body">
+                <div class="topic-bars-list" id="topicBarsContainer">
+                  <!-- Dynamically injected via JS -->
+                  <div class="progress-row">
+                    <div class="progress-meta">
+                      <span class="progress-label"><i class="fa-solid fa-hospital-user text-blue"></i> Healthcare</span>
+                      <span class="progress-counts" id="topicCountHealthcare">0</span>
+                    </div>
+                    <div class="progress-track"><div class="progress-bar-inner bg-blue" id="topicProgHealthcare" style="width: 0%"></div></div>
+                  </div>
+                  <div class="progress-row">
+                    <div class="progress-meta">
+                      <span class="progress-label"><i class="fa-solid fa-graduation-cap text-indigo"></i> Education</span>
+                      <span class="progress-counts" id="topicCountEducation">0</span>
+                    </div>
+                    <div class="progress-track"><div class="progress-bar-inner bg-indigo" id="topicProgEducation" style="width: 0%"></div></div>
+                  </div>
+                  <div class="progress-row">
+                    <div class="progress-meta">
+                      <span class="progress-label"><i class="fa-solid fa-bus text-teal"></i> Transportation</span>
+                      <span class="progress-counts" id="topicCountTransportation">0</span>
+                    </div>
+                    <div class="progress-track"><div class="progress-bar-inner bg-teal" id="topicProgTransportation" style="width: 0%"></div></div>
+                  </div>
+                  <div class="progress-row">
+                    <div class="progress-meta">
+                      <span class="progress-label"><i class="fa-solid fa-building-columns text-purple"></i> Public Services</span>
+                      <span class="progress-counts" id="topicCountPublicServices">0</span>
+                    </div>
+                    <div class="progress-track"><div class="progress-bar-inner bg-purple" id="topicProgPublicServices" style="width: 0%"></div></div>
+                  </div>
+                  <div class="progress-row">
+                    <div class="progress-meta">
+                      <span class="progress-label"><i class="fa-solid fa-cubes text-gray"></i> Other</span>
+                      <span class="progress-counts" id="topicCountOther">0</span>
+                    </div>
+                    <div class="progress-track"><div class="progress-bar-inner bg-gray" id="topicProgOther" style="width: 0%"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Comments Table Card -->
+          <div class="card table-card">
+            <div class="card-header table-header-flex">
+              <div>
+                <h3 class="card-title">Recent Comments</h3>
+                <p class="card-subtitle">Live stream of e-consultation citizen submissions</p>
+              </div>
+              <div class="table-actions">
+                <div class="filter-group">
+                  <button class="filter-chip active" data-filter="all" onclick="filterRecentTable('all')">All</button>
+                  <button class="filter-chip" data-filter="Positive" onclick="filterRecentTable('Positive')">Positive</button>
+                  <button class="filter-chip" data-filter="Negative" onclick="filterRecentTable('Negative')">Negative</button>
+                  <button class="filter-chip" data-filter="Neutral" onclick="filterRecentTable('Neutral')">Neutral</button>
+                </div>
+                <button class="btn btn-sm btn-outline" onclick="loadRecentComments()" title="Refresh table">
+                  <i class="fa-solid fa-rotate-right"></i> Refresh
+                </button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width: 44%;">Comment</th>
+                    <th>Sentiment</th>
+                    <th>Topic</th>
+                    <th>Emotion</th>
+                    <th>Priority</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="recentCommentsTableBody">
+                  <tr>
+                    <td colspan="6" class="text-center py-4">
+                      <div class="table-loader"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading comments...</div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- GOVERNMENT POLICY CONSULTATION -->
+        <section id="section-policies" class="page-section">
+          <div class="section-title-bar">
+            <div>
+              <h1 class="page-title">Government Policies</h1>
+              <p class="page-subtitle">Review local proposals and share feedback for public consultation.</p>
+            </div>
+          </div>
+          <p class="policy-disclaimer">Scheme summaries are general information. Eligibility, benefits, and application rules can change; confirm current details with the official scheme or government portal.</p>
+          <div id="policyCardsGrid" class="policy-cards-grid" aria-live="polite">
+            <p class="policy-loading">Loading policy proposals...</p>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- SECTION 2: ANALYZE COMMENT                     -->
+        <!-- ============================================== -->
+        <section id="section-analyze" class="page-section">
+          <div class="section-title-bar">
+            <div>
+              <h1 class="page-title">Analyze Comment with AI</h1>
+              <p class="page-subtitle">Submit citizen feedback for immediate generative sentiment, emotion, and priority classification.</p>
+            </div>
+          </div>
+
+          <div class="analyze-layout-grid">
+            <!-- Left Input Column -->
+            <div class="card analyze-form-card">
+              <div class="card-header">
+                <h3 class="card-title">New Consultation Feedback</h3>
+              </div>
+              <div class="card-body">
+                <form id="analyzeForm" onsubmit="handleAnalyzeSubmit(event)">
+                  <div class="form-group">
+                    <label for="policySelect" class="form-label">Policy proposal</label>
+                    <select id="policySelect" class="form-select policy-select">
+                      <option value="">General consultation feedback</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="feedbackText" class="form-label">Feedback Comment Text</label>
+                    <textarea 
+                      id="feedbackText" 
+                      rows="6" 
+                      class="form-control" 
+                      placeholder="Type or paste citizen feedback here... (e.g. 'The hospital waiting room was overcrowded and doctors were delayed by 2 hours.')"
+                      required
+                    ></textarea>
+                    <div class="form-help">Powered by Google Gemini 1.5 Flash with fallback heuristics.</div>
+                  </div>
+
+                  <!-- Quick preset buttons -->
+                  <div class="sample-presets">
+                    <span class="sample-label">Quick samples:</span>
+                    <button type="button" class="btn-sample" onclick="insertSample(1)">Transit praise</button>
+                    <button type="button" class="btn-sample" onclick="insertSample(2)">Hospital delay</button>
+                    <button type="button" class="btn-sample" onclick="insertSample(3)">School complaint</button>
+                    <button type="button" class="btn-sample" onclick="insertSample(4)">Road hazard</button>
+                    <button type="button" class="btn-sample" onclick="insertSample(5)">Park appreciation</button>
+                    <button type="button" class="btn-sample" onclick="insertSample(6)">Clinic access concern</button>
+                    <button type="button" class="btn-sample" onclick="insertSample(7)">Library hours question</button>
+                    <button type="button" class="btn-sample" onclick="insertSample(8)">Water service complaint</button>
+                  </div>
+
+                  <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg" id="btnAnalyzeSubmit">
+                      <i class="fa-solid fa-wand-magic-sparkles"></i>
+                      <span id="btnAnalyzeText">Analyze Feedback</span>
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="clearAnalyzeForm()">Clear</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Right AI Result Display Column -->
+            <div class="card ai-result-card" id="aiResultCard">
+              <div class="card-header">
+                <h3 class="card-title">AI Classification Result</h3>
+                <span class="badge-status" id="resultStatusBadge">Awaiting Input</span>
+              </div>
+              <div class="card-body" id="aiResultBody">
+                <div class="empty-result-state" id="emptyResultState">
+                  <div class="empty-icon"><i class="fa-solid fa-robot"></i></div>
+                  <h4>No Analysis Yet</h4>
+                  <p>Enter citizen feedback on the left and click "Analyze Feedback" to view real-time breakdown.</p>
+                </div>
+
+                <!-- Structured result view (hidden by default) -->
+                <div class="result-details" id="resultDetails" style="display: none;">
+                  <div class="result-top-badges">
+                    <div class="metric-pill">
+                      <span class="metric-label">Sentiment</span>
+                      <span id="resSentimentBadge" class="badge-tag">Positive</span>
+                    </div>
+                    <div class="metric-pill">
+                      <span class="metric-label">Topic</span>
+                      <span id="resTopicBadge" class="badge-tag">Healthcare</span>
+                    </div>
+                    <div class="metric-pill">
+                      <span class="metric-label">Emotion</span>
+                      <span id="resEmotionBadge" class="badge-tag">😊 Happy</span>
+                    </div>
+                    <div class="metric-pill">
+                      <span class="metric-label">Priority</span>
+                      <span id="resPriorityBadge" class="badge-tag">High</span>
+                    </div>
+                  </div>
+
+                  <div class="confidence-box">
+                    <div class="confidence-header">
+                      <span>Model Confidence</span>
+                      <strong id="resConfidence">92%</strong>
+                    </div>
+                    <div class="confidence-track">
+                      <div class="confidence-fill" id="resConfidenceFill" style="width: 92%;"></div>
+                    </div>
+                  </div>
+
+                  <div class="result-section-block">
+                    <label class="block-label">Extracted Keywords</label>
+                    <div class="keywords-wrap" id="resKeywordsContainer">
+                      <span class="kw-tag">bus</span>
+                      <span class="kw-tag">commute</span>
+                    </div>
+                  </div>
+
+                  <div class="result-section-block">
+                    <label class="block-label">Executive AI Summary</label>
+                    <blockquote class="ai-summary-quote" id="resSummary">
+                      Citizen commends the prompt transit improvements.
+                    </blockquote>
+                  </div>
+
+                  <div class="result-actions">
+                    <button class="btn btn-sm btn-primary" onclick="navigateTo('dashboard')">
+                      <i class="fa-solid fa-table-list"></i> View on Dashboard
+                    </button>
+                    <button class="btn btn-sm btn-ghost" onclick="clearAnalyzeForm()">Analyze Another</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- SECTION 3: ALL COMMENTS                        -->
+        <!-- ============================================== -->
+        <section id="section-comments" class="page-section">
+          <div class="section-title-bar">
+            <div>
+              <h1 class="page-title">Citizen Feedback Database</h1>
+              <p class="page-subtitle">Search, filter, and inspect all submitted consultation records.</p>
+            </div>
+            <button class="btn btn-outline" onclick="exportCommentsCSV()">
+              <i class="fa-solid fa-file-csv"></i> Export CSV
+            </button>
+          </div>
+
+          <div class="card table-card">
+            <div class="card-header table-filter-bar">
+              <div class="search-input-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="commentsSearchInput" class="table-search" placeholder="Search comment text, keywords, summary..." oninput="handleSearchComments()" />
+              </div>
+              <div class="select-filters">
+                <select id="filterTopicSelect" class="form-select" onchange="handleSearchComments()">
+                  <option value="">All Topics</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Education">Education</option>
+                  <option value="Transportation">Transportation</option>
+                  <option value="Public Services">Public Services</option>
+                  <option value="Other">Other</option>
+                </select>
+                <select id="filterSentimentSelect" class="form-select" onchange="handleSearchComments()">
+                  <option value="">All Sentiments</option>
+                  <option value="Positive">Positive</option>
+                  <option value="Negative">Negative</option>
+                  <option value="Neutral">Neutral</option>
+                </select>
+                <select id="filterPrioritySelect" class="form-select" onchange="handleSearchComments()">
+                  <option value="">All Priorities</option>
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width: 40%;">Comment & AI Summary</th>
+                    <th>Sentiment</th>
+                    <th>Topic</th>
+                    <th>Emotion</th>
+                    <th>Priority</th>
+                    <th>Date</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="allCommentsTableBody">
+                  <!-- Injected via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- SECTION 4: TOPIC ANALYSIS                      -->
+        <!-- ============================================== -->
+        <section id="section-topics" class="page-section">
+          <div class="section-title-bar">
+            <div>
+              <h1 class="page-title">Topic Analysis</h1>
+              <p class="page-subtitle">Categorical breakdown of civic feedback across key public sectors.</p>
+            </div>
+          </div>
+
+          <div class="topic-cards-grid">
+            <!-- Healthcare -->
+            <div class="card topic-detail-card" data-topic="Healthcare">
+              <div class="topic-card-top">
+                <div class="topic-icon-box bg-blue-soft text-blue">
+                  <i class="fa-solid fa-hospital-user"></i>
+                </div>
+                <div class="topic-badge-count" id="badgeTopicHealthcare">0 Comments</div>
+              </div>
+              <h3 class="topic-name">Healthcare</h3>
+              <p class="topic-desc">Hospitals, clinic wait times, medical staff, ambulance services, pharmacy.</p>
+              <div class="topic-stat-row">
+                <span class="topic-stat-lbl">Primary Sentiment:</span>
+                <span class="topic-stat-val" id="topicTopSentimentHealthcare">Neutral</span>
+              </div>
+              <div class="topic-card-action">
+                <button class="btn btn-sm btn-outline btn-block" onclick="filterCommentsByTopic('Healthcare')">View Healthcare Comments</button>
+              </div>
+            </div>
+
+            <!-- Education -->
+            <div class="card topic-detail-card" data-topic="Education">
+              <div class="topic-card-top">
+                <div class="topic-icon-box bg-indigo-soft text-indigo">
+                  <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="topic-badge-count" id="badgeTopicEducation">0 Comments</div>
+              </div>
+              <h3 class="topic-name">Education</h3>
+              <p class="topic-desc">Public schools, universities, curriculum, tuition fees, digital learning portals.</p>
+              <div class="topic-stat-row">
+                <span class="topic-stat-lbl">Primary Sentiment:</span>
+                <span class="topic-stat-val" id="topicTopSentimentEducation">Neutral</span>
+              </div>
+              <div class="topic-card-action">
+                <button class="btn btn-sm btn-outline btn-block" onclick="filterCommentsByTopic('Education')">View Education Comments</button>
+              </div>
+            </div>
+
+            <!-- Transportation -->
+            <div class="card topic-detail-card" data-topic="Transportation">
+              <div class="topic-card-top">
+                <div class="topic-icon-box bg-teal-soft text-teal">
+                  <i class="fa-solid fa-bus"></i>
+                </div>
+                <div class="topic-badge-count" id="badgeTopicTransportation">0 Comments</div>
+              </div>
+              <h3 class="topic-name">Transportation</h3>
+              <p class="topic-desc">Bus routes, metro transit, road potholes, traffic congestion, commuter rail.</p>
+              <div class="topic-stat-row">
+                <span class="topic-stat-lbl">Primary Sentiment:</span>
+                <span class="topic-stat-val" id="topicTopSentimentTransportation">Neutral</span>
+              </div>
+              <div class="topic-card-action">
+                <button class="btn btn-sm btn-outline btn-block" onclick="filterCommentsByTopic('Transportation')">View Transportation Comments</button>
+              </div>
+            </div>
+
+            <!-- Public Services -->
+            <div class="card topic-detail-card" data-topic="Public Services">
+              <div class="topic-card-top">
+                <div class="topic-icon-box bg-purple-soft text-purple">
+                  <i class="fa-solid fa-building-columns"></i>
+                </div>
+                <div class="topic-badge-count" id="badgeTopicPublicServices">0 Comments</div>
+              </div>
+              <h3 class="topic-name">Public Services</h3>
+              <p class="topic-desc">Water supply, electricity, street lighting, waste disposal, parks, licensing.</p>
+              <div class="topic-stat-row">
+                <span class="topic-stat-lbl">Primary Sentiment:</span>
+                <span class="topic-stat-val" id="topicTopSentimentPublicServices">Neutral</span>
+              </div>
+              <div class="topic-card-action">
+                <button class="btn btn-sm btn-outline btn-block" onclick="filterCommentsByTopic('Public Services')">View Public Services Comments</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- SECTION 5: EMOTION ANALYSIS                    -->
+        <!-- ============================================== -->
+        <section id="section-emotions" class="page-section">
+          <div class="section-title-bar">
+            <div>
+              <h1 class="page-title">Emotion Analysis</h1>
+              <p class="page-subtitle">Deep affective state detection across 5 core civic sentiment expressions.</p>
+            </div>
+            <div class="card emotion-total-summary">
+              <div class="stat-icon-wrapper bg-blue-soft">
+                <i class="fa-solid fa-face-smile text-blue"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Total Emotions</span>
+                <h3 class="stat-value" id="totalEmotionCount">0</h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="emotions-grid">
+            <!-- Happy -->
+            <div class="card emotion-card emotion-happy">
+              <div class="emotion-emoji">😄</div>
+              <h3 class="emotion-title">Happy</h3>
+              <div class="emotion-count" id="countEmotionHappy">0</div>
+              <p class="emotion-sub" id="pctEmotionHappy">0% of feedback</p>
+              <div class="emotion-desc">Appreciation, satisfaction with improved civic infrastructure, praise for staff.</div>
+            </div>
+
+            <!-- Angry -->
+            <div class="card emotion-card emotion-angry">
+              <div class="emotion-emoji">😡</div>
+              <h3 class="emotion-title">Angry</h3>
+              <div class="emotion-count" id="countEmotionAngry">0</div>
+              <p class="emotion-sub" id="pctEmotionAngry">0% of feedback</p>
+              <div class="emotion-desc">Outrage over delays, broken systems, administrative inaction, or unfair fees.</div>
+            </div>
+
+            <!-- Sad -->
+            <div class="card emotion-card emotion-sad">
+              <div class="emotion-emoji">😢</div>
+              <h3 class="emotion-title">Sad</h3>
+              <div class="emotion-count" id="countEmotionSad">0</div>
+              <p class="emotion-sub" id="pctEmotionSad">0% of feedback</p>
+              <div class="emotion-desc">Disappointment regarding discontinued programs, neglect, or loss of amenities.</div>
+            </div>
+
+            <!-- Neutral -->
+            <div class="card emotion-card emotion-neutral">
+              <div class="emotion-emoji">😐</div>
+              <h3 class="emotion-title">Neutral</h3>
+              <div class="emotion-count" id="countEmotionNeutral">0</div>
+              <p class="emotion-sub" id="pctEmotionNeutral">0% of feedback</p>
+              <div class="emotion-desc">Routine inquiries, clarifying questions, policy suggestions, unbiased remarks.</div>
+            </div>
+
+            <!-- Concerned -->
+            <div class="card emotion-card emotion-concerned">
+              <div class="emotion-emoji">😟</div>
+              <h3 class="emotion-title">Concerned</h3>
+              <div class="emotion-count" id="countEmotionConcerned">0</div>
+              <p class="emotion-sub" id="pctEmotionConcerned">0% of feedback</p>
+              <div class="emotion-desc">Safety worries, hazards, public health inquiries, upcoming zoning questions.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- SECTION 6: PRIORITY ANALYSIS                   -->
+        <!-- ============================================== -->
+        <section id="section-priority" class="page-section">
+          <div class="section-title-bar">
+            <div>
+              <h1 class="page-title">Priority Analysis & Urgency Triage</h1>
+              <p class="page-subtitle">Automated severity scoring to guide immediate government administrative intervention.</p>
+            </div>
+          </div>
+
+          <div class="priority-cards-grid">
+            <!-- High Priority -->
+            <div class="card priority-card priority-high">
+              <div class="priority-card-header">
+                <span class="priority-chip priority-chip-high">High Priority</span>
+                <span class="priority-action-needed">Action Required</span>
+              </div>
+              <h2 class="priority-number text-red" id="priorityCountHigh">0</h2>
+              <p class="priority-sub">Critical safety risks, service failures, or extreme dissatisfaction requiring rapid response.</p>
+              <button class="btn btn-sm btn-outline btn-block mt-3" onclick="filterCommentsByPriority('High')">View High Priority Feed</button>
+            </div>
+
+            <!-- Medium Priority -->
+            <div class="card priority-card priority-medium">
+              <div class="priority-card-header">
+                <span class="priority-chip priority-chip-medium">Medium Priority</span>
+                <span class="priority-action-needed">Review Queued</span>
+              </div>
+              <h2 class="priority-number text-amber" id="priorityCountMedium">0</h2>
+              <p class="priority-sub">Routine service grievances, schedule questions, or moderate dissatisfaction.</p>
+              <button class="btn btn-sm btn-outline btn-block mt-3" onclick="filterCommentsByPriority('Medium')">View Medium Priority Feed</button>
+            </div>
+
+            <!-- Low Priority -->
+            <div class="card priority-card priority-low">
+              <div class="priority-card-header">
+                <span class="priority-chip priority-chip-low">Low Priority</span>
+                <span class="priority-action-needed">Compliments / Info</span>
+              </div>
+              <h2 class="priority-number text-green" id="priorityCountLow">0</h2>
+              <p class="priority-sub">General positive feedback, constructive long-term ideas, or general compliments.</p>
+              <button class="btn btn-sm btn-outline btn-block mt-3" onclick="filterCommentsByPriority('Low')">View Low Priority Feed</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- SECTION 7: REPORTS                             -->
+        <!-- ============================================== -->
+        <section id="section-reports" class="page-section">
+          <div class="section-title-bar">
+            <div>
+              <h1 class="page-title">Executive Consultation Reports</h1>
+              <p class="page-subtitle">Synthesized analytics, citizen sentiment health indices, and downloadable briefs.</p>
+            </div>
+            <div class="report-action-btns">
+              <button class="btn btn-primary" onclick="window.print()">
+                <i class="fa-solid fa-print"></i> Print Report
+              </button>
+              <button class="btn btn-outline" onclick="exportCommentsCSV()">
+                <i class="fa-solid fa-download"></i> Download CSV
+              </button>
+            </div>
+          </div>
+
+          <div class="report-container">
+            <!-- Executive Summary Card -->
+            <div class="card report-summary-card">
+              <div class="card-header">
+                <h3 class="card-title">Consultation Health Index</h3>
+                <span class="tag-pill" id="reportDateTag">Report Period: Live</span>
+              </div>
+              <div class="card-body">
+                <div class="health-metrics-row">
+                  <div class="health-metric">
+                    <span class="metric-title">Public Satisfaction Score</span>
+                    <h2 class="metric-score text-green" id="reportScore">--%</h2>
+                    <span class="metric-sub">Calculated from positive vs negative comments</span>
+                  </div>
+                  <div class="health-metric">
+                    <span class="metric-title">Primary Focus Sector</span>
+                    <h2 class="metric-score text-blue" id="reportTopSector">--</h2>
+                    <span class="metric-sub">Highest submission volume</span>
+                  </div>
+                  <div class="health-metric">
+                    <span class="metric-title">Critical Attention Queue</span>
+                    <h2 class="metric-score text-red" id="reportCriticalCount">0</h2>
+                    <span class="metric-sub">Comments designated High Priority</span>
+                  </div>
+                </div>
+
+                <div class="ai-findings-box mt-4">
+                  <h4><i class="fa-solid fa-lightbulb text-amber"></i> Key AI Findings & Policy Recommendations</h4>
+                  <ul class="findings-list" id="reportFindingsList">
+                    <li>Healthcare and Transportation represent the largest volume of public submissions.</li>
+                    <li>Urgent issues related to street lights and public facility delays should be routed to field maintenance units.</li>
+                    <li>Digital enrollment portals have high anger sentiment and require technical load-testing prior to the next admission window.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Real-time Toast Notifications Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Socket.io client script (provided by server or fallback CDN) -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // In case server socket.io.js fails to load (e.g. static file inspection), load CDN fallback
+    if (typeof io === 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.socket.io/4.7.2/socket.io.min.js';
+      document.head.appendChild(script);
+    }
+  </script>
+  <script src="js/app.js"></script>
+</body>
+</html>
